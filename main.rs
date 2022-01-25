@@ -266,59 +266,64 @@ fn histogram_equalization(path:String){
     img=img.grayscale();
 
     let mut img = img.to_rgb8();
-
-
-    let mut frequency:Vec<i32> = Vec::new();
-    //let mut commulative_frequency:Vec<i32>=Vec::new;
-    let mut commulative_frequency:Vec<i32>= Vec::new();
-    let mut normalized_frequency:Vec<i32>=Vec::new();
-
+   
+    let mut number_of_intensity :Vec<u32> = Vec::new();
+    let mut pdf:Vec<f64>= Vec::new();//probability
+    let mut cdf:Vec<f64> =Vec::new();//cummulative distributive function
+  
     for _ in 0..256{
-        frequency.push(0);
-        commulative_frequency.push(0);
-        normalized_frequency.push(0);
+        number_of_intensity.push(0);
+        pdf.push(0.0);
+        cdf.push(0.0);
     }
 
     let mut max_pixel:u8=0;
 
     for i in img.enumerate_pixels(){
-        frequency[i.2.clone()[0] as usize]+=1;
-        if i.2.clone()[0]>max_pixel{
-            max_pixel=i.2.clone()[0];
-        }
-    }
-
-    //panic!("wron");
     
-    commulative_frequency[0] = frequency[0];
-
-    for i in 1..256{
-        commulative_frequency[i]=frequency[i]+commulative_frequency[i-1];
+        if i.2[0].clone() > max_pixel{
+            max_pixel=i.2[0].clone();
+        }
+        number_of_intensity[i.2[0].clone() as usize]+=1;     
     }
 
-    commulative_frequency[0] = frequency[0];
 
-    let max=commulative_frequency[255];
+    let mut n :u32=0;
 
     for i in 0..256{
-        
-        normalized_frequency[i] =  ( (commulative_frequency[i] / max as i32  ) as f64).ceil() as i32;
+        n+=number_of_intensity[i];
     }
-   
-    for i in img.enumerate_pixels_mut(){
-        i.2[0] = max_pixel*normalized_frequency[i.2[0] as usize] as u8;
-        i.2[1] = max_pixel*normalized_frequency[i.2[0] as usize] as u8;
-        i.2[2] = max_pixel*normalized_frequency[i.2[0] as usize] as u8;
+    
+    for i in 0..256{
+        pdf[i] = number_of_intensity[i] as f64 / n as f64;
     }
 
-    //let i :ImageBuffer<>
-     img.save("histogram.jpg");
+    cdf[0] = pdf[0];
+
+    for i in 1..256{
+        cdf[i] = pdf[i]+cdf[i-1];
+    }
+
+    //multiply by max pixel
+    for i in 0..256{
+        cdf[i]*=max_pixel as f64;
+    }
+
+    for i in img.enumerate_pixels_mut(){
+        i.2[0] = cdf[i.2[0].clone() as usize].floor() as u8;
+        i.2[1] = cdf[i.2[1].clone() as usize].floor() as u8;
+        i.2[2] = cdf[i.2[2].clone() as usize].floor() as u8;
+    }
+
+    
+     img.save("histogram_test.jpg");
 }
 fn main() {
     let mut path=String::from("/home/ivan/fmi-courses/rust-course/rust_project/prj/src/Golden_Retriever_Carlos_(10581910556).jpg");
-    let mut path = String::from("src/Valve_original_(1).png");
-   // let mut img = image::open(path.clone()).unwrap().to_rgb8();
-
+    let mut path = String::from("src/baby.png");
+    //let mut img = image::open(path.clone()).unwrap();
+  //  img=img.grayscale();
+   // img.save("grmona.jpg");
   //  let mut img_cp = img.clone();
 
     //edge_detect(path.clone());
