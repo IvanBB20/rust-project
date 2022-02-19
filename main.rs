@@ -324,10 +324,10 @@ fn flood_fill(
     color: Rgb<u8>,
     old_color: Rgb<u8>,
     tol: u8,
-    img: &mut ImageBuffer<Rgb<u8>, Vec<u8>>,
+     img: ImageBuffer<Rgb<u8>, Vec<u8>>,
 ) {
     let mut deq: VecDeque<(i32, i32)> = VecDeque::new();
-
+    let mut  img = img.clone();
     let mut visited:HashMap<(i32,i32) ,bool> = HashMap::new();
     
     for i in img.enumerate_pixels_mut(){
@@ -356,10 +356,11 @@ fn flood_fill(
 
         visited.insert((x , y) , true);
 
+       
         let p = img
-            .get_pixel(start_x.try_into().unwrap(), start_y.try_into().unwrap())
+            .get_pixel(x.try_into().unwrap(), y.try_into().unwrap())
             .clone();
-
+        println!("{:?}" , p);
         deq.push_back((x + 1, y));
         deq.push_back((x - 1, y));
         deq.push_back((x, y + 1));
@@ -379,14 +380,14 @@ fn main() {
     let mut img = image::open(path.clone()).unwrap().to_rgb8();
 
     flood_fill(
-        0,
-        0,
+        10,
+        50,
         img.width().try_into().unwrap(),
         img.height().try_into().unwrap(),
-        Rgb([255,255,0]),
+        Rgb([25,25,0]),
         Rgb([255, 255, 255]),
         5,
-        &mut img,
+         img,
     );
 
 
