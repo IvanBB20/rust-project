@@ -5,9 +5,9 @@ use image::imageops::*;
 use image::*;
 use std::cmp::max;
 use std::cmp::min;
-use std::collections::VecDeque;
 use std::collections::HashMap;
-
+use std::collections::VecDeque;
+use std::io;
 
 fn kernel_mul(mat: Vec<Vec<i32>>, ker: Vec<Vec<i32>>) -> i32 {
     mat[2][2] * ker[0][0]
@@ -298,15 +298,13 @@ fn histogram_equalization(path: String) {
 }
 
 fn tolerance_check(color1: Rgb<u8>, color2: Rgb<u8>, tol: f64) -> bool {
+    let red_diff = (max(color1[0], color2[0]) - min(color1[0], color2[0])) as f64;
+    let green_diff = (max(color1[1], color2[1]) - min(color1[1], color2[1])) as f64;
+    let blue_diff = (max(color1[2], color2[2]) - min(color1[2], color2[2])) as f64;
 
-
-    let red_diff   = (max(color1[0], color2[0]) - min(color1[0], color2[0])) as f64;
-    let green_diff  = (max(color1[1], color2[1]) - min(color1[1], color2[1]))as f64;
-    let blue_diff  =( max(color1[2], color2[2]) - min(color1[2], color2[2]))as f64;
-
-    let saturation_red = (red_diff / 255.0) as      f64;
-    let saturation_green = (green_diff / 255.0) as  f64;
-    let saturation_blue = (blue_diff / 255.0) as    f64;
+    let saturation_red = (red_diff / 255.0) as f64;
+    let saturation_green = (green_diff / 255.0) as f64;
+    let saturation_blue = (blue_diff / 255.0) as f64;
 
     let diff_percent = (saturation_blue + saturation_green + saturation_red) / (3.0) * 100.0;
 
@@ -314,8 +312,6 @@ fn tolerance_check(color1: Rgb<u8>, color2: Rgb<u8>, tol: f64) -> bool {
         return false;
     }
     return true;
-    
-
 }
 
 fn flood_fill(
@@ -326,18 +322,17 @@ fn flood_fill(
     color: Rgb<u8>,
     old_color: Rgb<u8>,
     tol: f64,
-     img: ImageBuffer<Rgb<u8>, Vec<u8>>,
+    img: ImageBuffer<Rgb<u8>, Vec<u8>>,
 ) {
     let mut deq: VecDeque<(i32, i32)> = VecDeque::new();
-    let mut  img = img.clone();
-    let mut visited:HashMap<(i32,i32) ,bool> = HashMap::new();
-    
-    for i in img.enumerate_pixels_mut(){
-        visited.insert((i.0 as i32,i.1 as i32), false);
-    }
-    visited.insert((start_x , start_y) , false);
+    let mut img = img.clone();
+    let mut visited: HashMap<(i32, i32), bool> = HashMap::new();
 
-    
+    for i in img.enumerate_pixels_mut() {
+        visited.insert((i.0 as i32, i.1 as i32), false);
+    }
+    visited.insert((start_x, start_y), false);
+
     deq.push_back((start_x, start_y));
 
     while deq.len() > 0 {
@@ -345,28 +340,26 @@ fn flood_fill(
         deq.pop_back();
         let x = t.0;
         let y = t.1;
-       // println!("{} , {} ", x, y);
+        // println!("{} , {} ", x, y);
 
         if x < 0 || y < 0 || x >= end_x || y >= end_y {
             continue;
         }
 
-        if visited.get(&(x,y)).unwrap().clone() == true{
+        if visited.get(&(x, y)).unwrap().clone() == true {
             continue;
         }
 
+        visited.insert((x, y), true);
 
-        visited.insert((x , y) , true);
-
-       
         let p = img
             .get_pixel(x.try_into().unwrap(), y.try_into().unwrap())
             .clone();
-      //  println!("{:?}" , p);
+        //  println!("{:?}" , p);
 
-        if// p == old_color
-        tolerance_check(p, old_color, tol)
-        {
+        if
+        // p == old_color
+        tolerance_check(p, old_color, tol) {
             img.put_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
             deq.push_back((x + 1, y));
             deq.push_back((x - 1, y));
@@ -377,22 +370,120 @@ fn flood_fill(
     img.save("12.png");
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     let mut path=String::from("/home/ivan/fmi-courses/rust-course/rust_project/prj/src/Golden_Retriever_Carlos_(10581910556).jpg");
     let mut path = String::from("src/man_coat.jpg");
     let mut img = image::open(path.clone()).unwrap().to_rgb8();
 
-    flood_fill(
-        10,
-        50,
-        img.width().try_into().unwrap(),
-        img.height().try_into().unwrap(),
-        Rgb([25,25,0]),
-        Rgb([255, 255, 255]),
-        5.0,
-         img,
-    );
+    /*
+        flood_fill(
+            10,
+            50,
+            img.width().try_into().unwrap(),
+            img.height().try_into().unwrap(),
+            Rgb([25,25,0]),
+            Rgb([255, 255, 255]),
+            5.0,
+             img,
+        );
 
+    */
+    loop {
+        println!("Enter path:");
+        let mut p = String::new();
 
+        io::stdin().read_line(&mut p)?;
+        p.pop();
+        let mut path = String::from("src/") + &p;
+        //let mut img = image::open(path.clone()).unwrap().to_rgb8();
 
+        //11 is for edge detect
+        //22 is for histogram normalization
+        // 33 is for flood fill
+
+        println!(
+            "11 is for edge detect\n
+             22 is for histogram normalization\n
+             33 is for flood fill \n"
+        );
+
+        let mut n = String::new();
+        //  let mut n:String = read("{}\n");
+        io::stdin().read_line(&mut n)?;
+        n.pop();
+        //    println!("{}" , n);
+        if n == "11".to_string() {
+            edge_detect(path);
+            println!("Done");
+        } else if n == "22".to_string() {
+            histogram_equalization(path);
+            println!("Done");
+        } else if n == "33".to_string() {
+            let mut x_start = String::new();
+            io::stdin().read_line(&mut x_start);
+            let x: i32 = x_start.trim().parse().unwrap();
+
+            let mut y_start = String::new();
+            io::stdin().read_line(&mut y_start);
+            let y: i32 = y_start.trim().parse().unwrap();
+            let mut img = image::open(path.clone()).unwrap().to_rgb8();
+
+            println!("Enter new color:");
+
+            let mut r_color_new: String = String::new();
+            let mut g_color_new: String = String::new();
+            let mut b_color_new: String = String::new();
+
+            io::stdin().read_line(&mut r_color_new);
+            let rcolornew: i32 = r_color_new.trim().parse().unwrap();
+
+            io::stdin().read_line(&mut g_color_new);
+            let gcolornew: i32 = g_color_new.trim().parse().unwrap();
+
+            io::stdin().read_line(&mut &mut b_color_new);
+            let bcolornew: i32 = b_color_new.trim().parse().unwrap();
+
+            println!("Enter color:");
+            let mut r_color: String = String::new();
+            let mut g_color: String = String::new();
+            let mut b_color: String = String::new();
+
+            io::stdin().read_line(&mut r_color);
+            let rcolor: i32 = r_color.trim().parse().unwrap();
+
+            io::stdin().read_line(&mut g_color);
+            let gcolor: i32 = g_color.trim().parse().unwrap();
+
+            io::stdin().read_line(&mut b_color);
+            let bcolor: i32 = b_color.trim().parse().unwrap();
+
+            println!("ENter tolerance");
+            let mut tol = String::new();
+            io::stdin().read_line(&mut &mut tol);
+            let tol_: f64 = tol.trim().parse().unwrap();
+
+            flood_fill(
+                x,
+                y,
+                img.width().try_into().unwrap(),
+                img.height().try_into().unwrap(),
+                Rgb([
+                    rcolornew.try_into().unwrap(),
+                    gcolornew.try_into().unwrap(),
+                    bcolornew.try_into().unwrap(),
+                ]),
+                Rgb([
+                    rcolor.try_into().unwrap(),
+                    gcolor.try_into().unwrap(),
+                    bcolor.try_into().unwrap(),
+                ]),
+                tol_.try_into().unwrap(),
+                img,
+            );
+            println!("Done");
+        } else {
+            println!("Wrong argument. TRY AGAIN");
+        }
+    }
+    Ok(())
 }
