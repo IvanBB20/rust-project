@@ -297,23 +297,25 @@ fn histogram_equalization(path: String) {
     img.save("histogram_test.jpg");
 }
 
-fn tolerance_check(color1: Rgb<u8>, color2: Rgb<u8>, tol: u8) -> bool {
-    //taken from a github implementation
+fn tolerance_check(color1: Rgb<u8>, color2: Rgb<u8>, tol: f64) -> bool {
 
-    let red_diff = max(color1[0], color2[0]) - min(color1[0], color2[0]);
-    let green_diff = max(color1[1], color2[1]) - min(color1[1], color2[1]);
-    let blue_diff = max(color1[2], color2[2]) - min(color1[2], color2[2]);
 
-    let saturation_red = (red_diff / 255) as i32;
-    let saturation_green = (green_diff / 255) as i32;
-    let saturation_blue = (blue_diff / 255) as i32;
+    let red_diff   = (max(color1[0], color2[0]) - min(color1[0], color2[0])) as f64;
+    let green_diff  = (max(color1[1], color2[1]) - min(color1[1], color2[1]))as f64;
+    let blue_diff  =( max(color1[2], color2[2]) - min(color1[2], color2[2]))as f64;
 
-    let diff_percent = (saturation_blue + saturation_green + saturation_red) / 3 * 100;
+    let saturation_red = (red_diff / 255.0) as      f64;
+    let saturation_green = (green_diff / 255.0) as  f64;
+    let saturation_blue = (blue_diff / 255.0) as    f64;
 
-    if diff_percent >= (tol as i32) {
+    let diff_percent = (saturation_blue + saturation_green + saturation_red) / (3.0) * 100.0;
+
+    if diff_percent >= (tol) {
         return false;
     }
     return true;
+    
+
 }
 
 fn flood_fill(
@@ -323,7 +325,7 @@ fn flood_fill(
     end_y: i32,
     color: Rgb<u8>,
     old_color: Rgb<u8>,
-    tol: u8,
+    tol: f64,
      img: ImageBuffer<Rgb<u8>, Vec<u8>>,
 ) {
     let mut deq: VecDeque<(i32, i32)> = VecDeque::new();
@@ -360,15 +362,16 @@ fn flood_fill(
         let p = img
             .get_pixel(x.try_into().unwrap(), y.try_into().unwrap())
             .clone();
-        println!("{:?}" , p);
-        deq.push_back((x + 1, y));
-        deq.push_back((x - 1, y));
-        deq.push_back((x, y + 1));
-        deq.push_back((x, y - 1));
-        if p == old_color
-       // tolerance_check(p, old_color, tol)
+      //  println!("{:?}" , p);
+
+        if// p == old_color
+        tolerance_check(p, old_color, tol)
         {
             img.put_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
+            deq.push_back((x + 1, y));
+            deq.push_back((x - 1, y));
+            deq.push_back((x, y + 1));
+            deq.push_back((x, y - 1));
         }
     }
     img.save("12.png");
@@ -386,7 +389,7 @@ fn main() {
         img.height().try_into().unwrap(),
         Rgb([25,25,0]),
         Rgb([255, 255, 255]),
-        5,
+        5.0,
          img,
     );
 
