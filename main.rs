@@ -357,9 +357,16 @@ fn flood_fill(
             .clone();
         //  println!("{:?}" , p);
 
-        if
-        // p == old_color
-        tolerance_check(p, old_color, tol) {
+        if tol == 0.0{
+            if p == old_color{
+                img.put_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
+                deq.push_back((x + 1, y));
+                deq.push_back((x - 1, y));
+                deq.push_back((x, y + 1));
+                deq.push_back((x, y - 1));
+            }
+        }
+       else  if tolerance_check(p, old_color, tol) {
             img.put_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
             deq.push_back((x + 1, y));
             deq.push_back((x - 1, y));
@@ -401,11 +408,9 @@ fn main() -> io::Result<()> {
         //22 is for histogram normalization
         // 33 is for flood fill
 
-        println!(
-            "11 is for edge detect\n
-             22 is for histogram normalization\n
-             33 is for flood fill \n"
-        );
+        println!("11 is for edge detect");
+        println!("22 is for histogram normalization");
+        println!("33 is for flood fill");
 
         let mut n = String::new();
         //  let mut n:String = read("{}\n");
@@ -419,6 +424,7 @@ fn main() -> io::Result<()> {
             histogram_equalization(path);
             println!("Done");
         } else if n == "33".to_string() {
+            println!("Enter x and y: ");
             let mut x_start = String::new();
             io::stdin().read_line(&mut x_start);
             let x: i32 = x_start.trim().parse().unwrap();
