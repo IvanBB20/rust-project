@@ -49,6 +49,7 @@ fn coordinates_not_on_edge(x: u32, y: u32, w: u32, h: u32) -> bool {
     x != 0 && y != 0 && x != w - 1 && y != h - 1
 }
 
+//https://en.wikipedia.org/wiki/Sobel_operator
 fn edge_detect(path: String) {
     let mut img = image::open(path).unwrap();
 
@@ -338,8 +339,8 @@ fn flood_fill(
     deq.push_back((start_x, start_y));
 
     while deq.len() > 0 {
-        let t = deq.front().unwrap().clone();
-        deq.pop_front();
+        let t = deq.back().unwrap().clone();
+        deq.pop_back();
         let x = t.0;
         let y = t.1;
        // println!("{} , {} ", x, y);
@@ -363,8 +364,8 @@ fn flood_fill(
         deq.push_back((x - 1, y));
         deq.push_back((x, y + 1));
         deq.push_back((x, y - 1));
-        if //p == old_color
-        tolerance_check(p, old_color, tol)
+        if p == old_color
+       // tolerance_check(p, old_color, tol)
         {
             img.put_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
         }
@@ -382,17 +383,12 @@ fn main() {
         0,
         img.width().try_into().unwrap(),
         img.height().try_into().unwrap(),
-        Rgb([0,0,0]),
+        Rgb([255,255,0]),
         Rgb([255, 255, 255]),
-        15,
+        5,
         &mut img,
     );
 
-    //  img=img.grayscale();
-    // img.save("grmona.jpg");
-    //  let mut img_cp = img.clone();
 
-    //edge_detect(path.clone());
-    //  let mut path =String::from("/home/ivan/fmi-courses/rust-course/rust_project/prj/src/1_0JwGb7OY6U3EvV_FFDiQkw.jpg");
-    //histogram_equalization(path);
+
 }
