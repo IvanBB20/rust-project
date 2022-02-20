@@ -382,6 +382,9 @@ fn main() -> io::Result<()> {
     let mut path = String::from("src/man_coat.jpg");
     let mut img = image::open(path.clone()).unwrap().to_rgb8();
 
+    edge_detect(path.clone());
+    histogram_equalization(path.clone());
+    flood_fill(0,0, img.width().try_into().unwrap(),    img.height().try_into().unwrap(),Rgb([25,25,0]),Rgb([255, 255, 255]), 5.0,img);
     /*
         flood_fill(
             10,
